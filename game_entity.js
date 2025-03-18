@@ -1,12 +1,30 @@
+const EASY_CONFIG = {
+    BASE_HEALTH: 50,
+    BASE_ATTACK: 10,
+    BASE_SPEED: 50,
+    BASE_ATTACK_RANGE: 50,
+    BASE_STOP_DISTANCE: 50,
+    BASE_ATTACK_INTERVAL: 3,
+    BASE_TOWER_HEALTH: 500,
+
+    BASE_HEALTH_TEXT_Y: -50,
+    BASE_HEALTH_TEXT_SIZE: 12,
+    BASE_HEALTH_TEXT_COLOR: '#ffffff',
+
+    RABBIT_ANIMATION_FPS: 2,
+}
+
 // ユニットの種類を定義する定数（コンフィグオブジェクト）
 // ※tmp_rabbit は画像用のキーとして 'rabbit' を利用し、他は画像がない前提
 const UNIT_TYPES = {
-    tmp_rabbit: { health: 50, attack: 10, speed: 50, imageKey: 'rabbit', attackRange: 50, stopDistance: 50, attackInterval: 3 },
+    tmp_rabbit: { health: EASY_CONFIG.BASE_HEALTH, attack: EASY_CONFIG.BASE_ATTACK, speed: EASY_CONFIG.BASE_SPEED, imageKey: 'rabbit', attackRange: EASY_CONFIG.BASE_ATTACK_RANGE, stopDistance: EASY_CONFIG.BASE_STOP_DISTANCE, attackInterval: EASY_CONFIG.BASE_ATTACK_INTERVAL }, 
     archer:     { health: 20,  attack: 15, speed: 30,  imageKey: 'archer',    attackRange: 90, stopDistance: 85, attackInterval: 5 },
     //cavalry:    { health: 120, attack: 20, speed: 80,  imageKey: 'cavalry',   attackRange: 40, stopDistance: 45, attackInterval: 1 },
     //mage:       { health: 70,  attack: 25, speed: 40,  imageKey: 'mage',      attackRange: 80, stopDistance: 40, attackInterval: 1 },
     //tank:       { health: 150, attack: 15, speed: 30,  imageKey: 'tank',      attackRange: 50, stopDistance: 40, attackInterval: 1 }
 };
+
+
 
 // --- 基底クラス ---
 class Entity {
@@ -39,7 +57,7 @@ class Unit extends Entity {
     constructor(scene, x, y, health, attack, speed, imageKey, faction, specialAbility = null, attackRange = 50, stopDistance = 20, attackInterval = 1) {
         super(scene, x, y);
         this.health = health;
-        this.healthTextY = y - 50;
+        this.healthTextY = y - EASY_CONFIG.BASE_HEALTH_TEXT_Y;
         this.attack = attack;
         this.speed = speed;
         this.specialAbility = specialAbility;
@@ -67,7 +85,7 @@ class Unit extends Entity {
         }
         
         // ユニット上部に体力表示テキストを作成
-        this.healthText = scene.add.text(x, this.healthTextY, `${this.health}`, { fontSize: '12px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
+        this.healthText = scene.add.text(x, this.healthTextY, `${this.health}`, { fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE, fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR }).setOrigin(0.5, 0.5);
     }
 
     update(deltaTime) {
@@ -244,7 +262,7 @@ class MyScene extends Phaser.Scene {
                     { key: 'frame1' },
                     { key: 'frame2' }
                 ],
-                frameRate: 2,
+                frameRate: EASY_CONFIG.RABBIT_ANIMATION_FPS,
                 repeat: -1
             });
             this.anims.create({
@@ -254,7 +272,7 @@ class MyScene extends Phaser.Scene {
                     { key: 'frame4' },
                     { key: 'frame5' }
                 ],
-                frameRate: 2,
+                frameRate: EASY_CONFIG.RABBIT_ANIMATION_FPS,
                 repeat: -1
             });
         }
