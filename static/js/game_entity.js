@@ -14,6 +14,8 @@ const EASY_CONFIG = {
     RABBIT_ANIMATION_FPS: 2,
 }
 
+const ASSETS_PATH = './static/assets/';
+
 // ユニットの種類を定義する定数（コンフィグオブジェクト）
 // ※tmp_rabbit は画像用のキーとして 'rabbit' を利用し、他は画像がない前提
 const UNIT_TYPES = {
@@ -238,11 +240,11 @@ class MyScene extends Phaser.Scene {
     
     preload() {
         // tmp_rabbit 用のアニメーションフレームをプリロード
-        this.load.image('frame1', './assets/rabbit_unit/rabbit_walk1.png');
-        this.load.image('frame2', './assets/rabbit_unit/rabbit_walk2.png');
-        this.load.image('frame3', './assets/rabbit_unit/rabbit_attack1.png');
-        this.load.image('frame4', './assets/rabbit_unit/rabbit_attack2.png');
-        this.load.image('frame5', './assets/rabbit_unit/rabbit_attack3.png');
+        this.load.image('frame1', `${ASSETS_PATH}rabbit_unit/rabbit_walk1.png`);
+        this.load.image('frame2', `${ASSETS_PATH}rabbit_unit/rabbit_walk2.png`);
+        this.load.image('frame3', `${ASSETS_PATH}rabbit_unit/rabbit_attack1.png`);
+        this.load.image('frame4', `${ASSETS_PATH}rabbit_unit/rabbit_attack2.png`);
+        this.load.image('frame5', `${ASSETS_PATH}rabbit_unit/rabbit_attack3.png`);
     }
     
     create() {
