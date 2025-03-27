@@ -1,3 +1,4 @@
+
 const EASY_CONFIG = {
     BASE_HEALTH: 50,
     BASE_ATTACK: 10,
@@ -16,7 +17,7 @@ const EASY_CONFIG = {
 
 const ASSETS_PATH = './static/assets/';
 
-// ユニットの種類を定義する定数（コンフィグオブジェクト）
+// ユニットの種類を定義する定数
 // ※tmp_rabbit は画像用のキーとして 'rabbit' を利用し、他は画像がない前提
 const UNIT_TYPES = {
     tmp_rabbit: { 
@@ -28,7 +29,7 @@ const UNIT_TYPES = {
         stopDistance: EASY_CONFIG.BASE_STOP_DISTANCE, 
         attackInterval: EASY_CONFIG.BASE_ATTACK_INTERVAL 
     }, 
-    archer: {     
+    archer: { 
         health: 20,  
         attack: 15, 
         speed: 30,  
@@ -37,7 +38,9 @@ const UNIT_TYPES = {
         stopDistance: 85, 
         attackInterval: 5 
     },
-    // 他のユニット定義があればここに追加
+    //cavalry: { ... },
+    //mage:    { ... },
+    //tank:    { ... }
 };
 
 // --- 基底クラス ---
@@ -71,7 +74,7 @@ class Unit extends Entity {
     constructor(scene, x, y, health, attack, speed, imageKey, faction, specialAbility = null, attackRange = 50, stopDistance = 20, attackInterval = 1) {
         super(scene, x, y);
         this.health = health;
-        // 体力テキストのY座標は元の値からオフセット（BASE_HEALTH_TEXT_Y）を引いて上部に表示
+        // 体力テキストの基本Y座標（以降、ここからオフセットを加算）
         this.healthTextY = y - EASY_CONFIG.BASE_HEALTH_TEXT_Y;
         this.attack = attack;
         this.speed = speed;
@@ -153,7 +156,36 @@ class Unit extends Entity {
             }
         }
         
-        // 敵が近い場合は攻撃、そうでなければ移動
+        // 同じ種類の味方ユニットが重なった場合、体力テキストの位置をずらす処理
+        if(this.faction === 'ally') {
+            const sameTypeAllies = this.scene.entities.filter(u => 
+                u instanceof Unit && 
+                u.faction === 'ally' && 
+                u.imageKey === this.imageKey &&
+                Math.abs(u.x - this.x) < 10  // x軸上で重なっていると判断する閾値（調整可）
+            );
+            sameTypeAllies.sort((a, b) => a.x - b.x);
+            const index = sameTypeAllies.indexOf(this);
+            const offsetY = index * 15; // 15pxずつ下にずらす例
+            this.healthText.y = this.healthTextY + offsetY;
+        } else {
+            this.healthText.y = this.healthTextY;
+        }
+        
+        // 味方ユニットで異なる種類との重なりを防ぐ（移動停止）
+        let collisionWithDifferentAlly = false;
+        if(this.faction === 'ally') {
+            for(const other of this.scene.entities) {
+                if(other instanceof Unit && other !== this && other.faction === 'ally' && other.imageKey !== this.imageKey) {
+                    if(Math.abs(this.x - other.x) < 20) { // 20px以下なら重なっているとみなす（調整可）
+                        collisionWithDifferentAlly = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 敵が近い場合は攻撃、そうでなければ移動（ただし異なる種類の味方と衝突している場合は移動しない）
         if (enemyInStopRange) {
             this.timeSinceLastAttack += deltaTime;
             if (this.timeSinceLastAttack >= this.attackInterval) {
@@ -163,16 +195,20 @@ class Unit extends Entity {
                 this.timeSinceLastAttack = 0;
             }
         } else {
-            this.x += this.speed * deltaTime;
-            if(this.sprite) {
-                this.sprite.x = this.x;
+            if(!collisionWithDifferentAlly) {
+                this.x += this.speed * deltaTime;
+                if(this.sprite) {
+                    this.sprite.x = this.x;
+                }
+                this.timeSinceLastAttack = 0;
+            } else {
+                // 異なる種類の味方ユニットと重なっている場合は移動を停止
+                this.timeSinceLastAttack = 0;
             }
-            this.timeSinceLastAttack = 0;
         }
         
-        // 体力表示テキストの更新
+        // 体力表示テキストのx座標更新
         this.healthText.x = this.x;
-        this.healthText.y = this.healthTextY;
         this.updateHealthText();
     }
     
@@ -214,10 +250,7 @@ class Tower extends Entity {
         this.health = health;
         this.active = true;
         this.sprite = scene.add.rectangle(x, y, 40, 40, color);
-        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { 
-            fontSize: '16px', 
-            fill: '#ffffff' 
-        }).setOrigin(0.5, 0.5);
+        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { fontSize: '16px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
     }
     
     update(deltaTime) {
@@ -248,35 +281,11 @@ class Tower extends Entity {
     }
 }
 
-// --- ステージ選択シーン ---
-class StageSelectionScene extends Phaser.Scene {
-    constructor() {
-        super({ key: 'StageSelectionScene' });
-    }
-    
-    create() {
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        
-        // タイトル表示
-        this.add.text(width / 2, height / 4, "ステージ選択", { fontSize: '32px', fill: '#ffffff' }).setOrigin(0.5);
-        
-        // ステージ1ボタン（ここではひとつのステージのみ）
-        let stageButton = this.add.rectangle(width / 2, height / 2, 200, 100, 0x666666).setInteractive();
-        this.add.text(width / 2, height / 2, "ステージ1", { fontSize: '24px', fill: '#ffffff' }).setOrigin(0.5);
-        stageButton.on('pointerdown', () => {
-            this.scene.start('MyScene');
-        });
-    }
-}
-
-// --- ゲームシーン ---
+// --- Phaser シーン ---
 class MyScene extends Phaser.Scene {
     constructor() {
         super({ key: "MyScene" });
         this.entities = [];
-        this.gameOver = false;
-        this.enemySpawnTimer = null;
     }
     
     preload() {
@@ -321,7 +330,7 @@ class MyScene extends Phaser.Scene {
         }
         
         // enemy 側のユニット出現イベント（4000msごと）
-        this.enemySpawnTimer = this.time.addEvent({
+        this.time.addEvent({
             delay: 4000,
             callback: this.spawnEnemyUnit,
             callbackScope: this,
@@ -331,7 +340,6 @@ class MyScene extends Phaser.Scene {
     }
     
     spawnEnemyUnit() {
-        if (this.gameOver) return;
         const unitTypes = Object.keys(UNIT_TYPES);
         const randomType = unitTypes[Math.floor(Math.random() * unitTypes.length)];
         const typeConfig = UNIT_TYPES[randomType];
@@ -366,10 +374,9 @@ class MyScene extends Phaser.Scene {
     createUnitButton(typeKey, x, y) {
         const buttonWidth = 70, buttonHeight = 30;
         let button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x666666).setInteractive();
-        this.add.text(x, y, typeKey, { fontSize: '14px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
+        let text = this.add.text(x, y, typeKey, { fontSize: '14px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
         button.on('pointerdown', () => {
-            if (this.gameOver) return;
-            // ボタン押下で ally 側ユニットを出現（左タワー側）
+            // ボタン押下で ally 側ユニットを出現させる（左タワー側）
             const typeConfig = UNIT_TYPES[typeKey];
             const unit = new Unit(
                 this,
@@ -391,46 +398,11 @@ class MyScene extends Phaser.Scene {
     
     update(time, delta) {
         const deltaTime = delta / 500;
-        if (!this.gameOver) {
-            this.entities.forEach(entity => {
-                entity.update(deltaTime);
-            });
-            // inactive なエンティティは除去
-            this.entities = this.entities.filter(entity => !("active" in entity && entity.active === false));
-            
-            // タワーの体力が0になったらゲーム終了
-            if (!this.leftTower.active || !this.rightTower.active) {
-                this.handleGameOver();
-            }
-        }
-    }
-    
-    handleGameOver() {
-        this.gameOver = true;
-        // 出現タイマー停止
-        if (this.enemySpawnTimer) {
-            this.enemySpawnTimer.remove(false);
-        }
-        
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        let resultText = "";
-        // enemy側のタワーが破壊されたら WIN、ally側なら LOSE と表示
-        if (!this.rightTower.active) {
-            resultText = "WIN";
-        } else if (!this.leftTower.active) {
-            resultText = "LOSE";
-        }
-        
-        // 結果テキスト表示
-        this.add.text(width / 2, height / 2, resultText, { fontSize: '64px', fill: '#ffffff' }).setOrigin(0.5);
-        
-        // 「次へ」ボタン作成（押下でステージ選択画面へ戻る）
-        let nextButton = this.add.rectangle(width / 2, height / 2 + 100, 150, 50, 0x666666).setInteractive();
-        this.add.text(width / 2, height / 2 + 100, "次へ", { fontSize: '24px', fill: '#ffffff' }).setOrigin(0.5);
-        nextButton.on('pointerdown', () => {
-            this.scene.start('StageSelectionScene');
+        this.entities.forEach(entity => {
+            entity.update(deltaTime);
         });
+        // inactive なエンティティは除去
+        this.entities = this.entities.filter(entity => !("active" in entity && entity.active === false));
     }
 }
 
@@ -440,8 +412,7 @@ const config = {
     width: 1200,
     height: 600,
     backgroundColor: "#333333",
-    // 複数シーンを登録（最初はステージ選択画面から開始）
-    scene: [StageSelectionScene, MyScene]
+    scene: MyScene
 };
 
 const game = new Phaser.Game(config);
