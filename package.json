@@ -1,0 +1,23 @@
+{
+  "name": "rabbit_game",
+  "version": "1.0.0",
+  "description": "2Dタワーディフェンスゲームの試作品です",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobiuo3000/rabbit_game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tobiuo3000/rabbit_game/issues"
+  },
+  "homepage": "https://github.com/tobiuo3000/rabbit_game#readme",
+  "dependencies": {
+    "phaser": "^3.88.2"
+  }
+}

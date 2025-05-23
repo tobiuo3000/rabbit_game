@@ -1,0 +1,23 @@
+{
+    "name": "rabbit game",
+    "dockerFile": "../dev.Dockerfile",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "ms-python.debugpy",
+                "charliermarsh.ruff",
+                "MS-CEINTL.vscode-language-pack-ja",
+                "esbenp.prettier-vscode",
+                "dbaeumer.vscode-eslint"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached"
+    ]
+}
