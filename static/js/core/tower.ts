@@ -26,7 +26,7 @@ export class Tower extends Entity {
         this.health = health;
         this.active = true;
         this.sprite = scene.add.rectangle(x, y, 40, 40, color);
-        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { fontSize: '16px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
+        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { fontSize: '16px', fill: '#ffffff' } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0.5);
     }
     update(deltaTime: number): void {
         this.sprite.x = this.x;

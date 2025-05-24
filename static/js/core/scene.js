@@ -1,17 +1,15 @@
-// =========================================
-// scene.js
-// ゲーム全体のPhaserシーン管理クラスやで。
-//
-// 主な仕様:
-// - タワー・ユニットの生成、アニメーション、UIボタン、ゲーム進行を管理
-// 制限事項:
-// - Phaser, Unit, Tower, 設定値のimportが必要やで。
-// =========================================
-
+/**
+ * scene.ts
+ * ゲーム全体のPhaserシーン管理クラスやで。
+ *
+ * 主な仕様:
+ * - タワー・ユニットの生成、アニメーション、UIボタン、ゲーム進行を管理
+ * 制限事項:
+ * - Phaser, Unit, Tower, 設定値のimportが必要やで。
+ */
 import { UNIT_TYPES, EASY_CONFIG, ASSETS_PATH } from '../config.js';
 import { Unit } from './unit.js';
 import { Tower } from './tower.js';
-
 export class MyScene extends Phaser.Scene {
     constructor() {
         super({ key: "MyScene" });
@@ -63,20 +61,7 @@ export class MyScene extends Phaser.Scene {
         const unitTypes = Object.keys(UNIT_TYPES);
         const randomType = unitTypes[Math.floor(Math.random() * unitTypes.length)];
         const typeConfig = UNIT_TYPES[randomType];
-        const unit = new Unit(
-            this,
-            this.rightTower.x - 20,
-            this.rightTower.y,
-            typeConfig.health,
-            typeConfig.attack,
-            -typeConfig.speed,
-            typeConfig.imageKey,
-            "enemy",
-            null,
-            typeConfig.attackRange,
-            typeConfig.stopDistance,
-            typeConfig.attackInterval
-        );
+        const unit = new Unit(this, this.rightTower.x - 20, this.rightTower.y, typeConfig.health, typeConfig.attack, -typeConfig.speed, typeConfig.imageKey, "enemy", null, typeConfig.attackRange, typeConfig.stopDistance, typeConfig.attackInterval);
         this.entities.push(unit);
     }
     createUnitButtons() {
@@ -95,20 +80,7 @@ export class MyScene extends Phaser.Scene {
         let text = this.add.text(x, y, typeKey, { fontSize: '14px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
         button.on('pointerdown', () => {
             const typeConfig = UNIT_TYPES[typeKey];
-            const unit = new Unit(
-                this,
-                this.leftTower.x + 20,
-                this.leftTower.y,
-                typeConfig.health,
-                typeConfig.attack,
-                typeConfig.speed,
-                typeConfig.imageKey,
-                "ally",
-                null,
-                typeConfig.attackRange,
-                typeConfig.stopDistance,
-                typeConfig.attackInterval
-            );
+            const unit = new Unit(this, this.leftTower.x + 20, this.leftTower.y, typeConfig.health, typeConfig.attack, typeConfig.speed, typeConfig.imageKey, "ally", null, typeConfig.attackRange, typeConfig.stopDistance, typeConfig.attackInterval);
             this.entities.push(unit);
         });
     }

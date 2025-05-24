@@ -9,7 +9,8 @@
  * - 特になし
  */
 import Phaser from 'phaser';
-import { EASY_CONFIG, ASSETS_PATH, UNIT_TYPES } from './config.js';
+import { EASY_CONFIG, ASSETS_PATH, UNIT_TYPES } from './config';
+
 // --- 基底クラス ---
 /**
  * Entity
@@ -22,15 +23,19 @@ import { EASY_CONFIG, ASSETS_PATH, UNIT_TYPES } from './config.js';
  * - 直接インスタンス化せんといてな
  */
 export class Entity {
-    constructor(scene, x, y) {
+    scene: Phaser.Scene;
+    x: number;
+    y: number;
+    constructor(scene: Phaser.Scene, x: number, y: number) {
         this.scene = scene;
         this.x = x;
         this.y = y;
     }
-    update(deltaTime) {
+    update(deltaTime: number): void {
         // 各クラスでオーバーライド
     }
 }
+
 // --- ユニットクラス ---
 /**
  * Unit
@@ -43,7 +48,35 @@ export class Entity {
  * - scene.entities, scene.leftTower, scene.rightTowerが必要やで
  */
 export class Unit extends Entity {
-    constructor(scene, x, y, health, attack, speed, imageKey, faction, specialAbility = null, attackRange = 50, stopDistance = 20, attackInterval = 1) {
+    health: number;
+    attack: number;
+    speed: number;
+    specialAbility: any;
+    faction: string;
+    attackRange: number;
+    stopDistance: number;
+    attackInterval: number;
+    timeSinceLastAttack: number;
+    active: boolean;
+    imageKey: string;
+    sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
+    healthText: Phaser.GameObjects.Text;
+    healthTextY: number;
+
+    constructor(
+        scene: Phaser.Scene,
+        x: number,
+        y: number,
+        health: number,
+        attack: number,
+        speed: number,
+        imageKey: string,
+        faction: string,
+        specialAbility: any = null,
+        attackRange: number = 50,
+        stopDistance: number = 20,
+        attackInterval: number = 1
+    ) {
         super(scene, x, y);
         this.health = health;
         this.attack = attack;
@@ -64,8 +97,7 @@ export class Unit extends Entity {
             if (this.faction === "ally") {
                 this.sprite.setFlipX(true);
             }
-        }
-        else {
+        } else {
             // 画像が無い場合は、代替として四角形を生成
             const fallbackColor = (faction === "ally") ? 0x00ff00 : 0xff0000;
             this.sprite = scene.add.rectangle(x, y, 20, 20, fallbackColor);
@@ -74,19 +106,18 @@ export class Unit extends Entity {
         this.healthText = scene.add.text(x, this.healthTextY, `${this.health}`, {
             fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE,
             fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR
-        }).setOrigin(0.5, 0.5);
+        } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0.5);
     }
     /**
      * ユニットの状態更新やで。
      * @param deltaTime フレーム間の経過時間
      */
-    update(deltaTime) {
-        if (!this.active)
-            return;
+    update(deltaTime: number): void {
+        if (!this.active) return;
         let enemyInStopRange = false;
-        let attackTargets = [];
+        let attackTargets: (Unit | Tower)[] = [];
         // 敵ユニットのチェック
-        for (const other of this.scene.entities) {
+        for (const other of (this.scene as any).entities as Entity[]) {
             if (other !== this && other instanceof Unit && other.active && other.faction !== this.faction) {
                 const distance = Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y);
                 if (distance < this.stopDistance) {
@@ -98,12 +129,11 @@ export class Unit extends Entity {
             }
         }
         // 進行方向の敵タワーのチェック
-        let enemyTower = null;
+        let enemyTower: Tower | null = null;
         if (this.faction === "ally") {
-            enemyTower = this.scene.rightTower;
-        }
-        else if (this.faction === "enemy") {
-            enemyTower = this.scene.leftTower;
+            enemyTower = (this.scene as any).rightTower as Tower;
+        } else if (this.faction === "enemy") {
+            enemyTower = (this.scene as any).leftTower as Tower;
         }
         if (enemyTower && enemyTower.active) {
             const dTower = Phaser.Math.Distance.Between(this.x, this.y, enemyTower.x, enemyTower.y);
@@ -115,13 +145,12 @@ export class Unit extends Entity {
         // アニメーションの切り替え（this.spriteがSpriteの場合のみ実施）
         if (this.sprite instanceof Phaser.GameObjects.Sprite) {
             if (enemyInStopRange) {
-                if (this.scene.anims.exists('rabbit_attack_anim') &&
+                if ((this.scene as any).anims.exists('rabbit_attack_anim') &&
                     (!this.sprite.anims.currentAnim || this.sprite.anims.currentAnim.key !== 'rabbit_attack_anim')) {
                     this.sprite.play('rabbit_attack_anim');
                 }
-            }
-            else {
-                if (this.scene.anims.exists('rabbit_walk_anim') &&
+            } else {
+                if ((this.scene as any).anims.exists('rabbit_walk_anim') &&
                     (!this.sprite.anims.currentAnim || this.sprite.anims.currentAnim.key !== 'rabbit_walk_anim')) {
                     this.sprite.play('rabbit_walk_anim');
                 }
@@ -129,7 +158,7 @@ export class Unit extends Entity {
         }
         // 同じ種類の味方ユニットが重なった場合、体力テキストの位置をずらす処理
         if (this.faction === 'ally') {
-            const sameTypeAllies = this.scene.entities.filter((u) => u instanceof Unit &&
+            const sameTypeAllies = ((this.scene as any).entities as Unit[]).filter((u) => u instanceof Unit &&
                 u.faction === 'ally' &&
                 u.imageKey === this.imageKey &&
                 Math.abs(u.x - this.x) < 10);
@@ -137,14 +166,13 @@ export class Unit extends Entity {
             const index = sameTypeAllies.indexOf(this);
             const offsetY = index * 15;
             this.healthText.y = this.healthTextY + offsetY;
-        }
-        else {
+        } else {
             this.healthText.y = this.healthTextY;
         }
         // 味方ユニットで異なる種類との重なりを防ぐ（移動停止）
         let collisionWithDifferentAlly = false;
         if (this.faction === 'ally') {
-            for (const other of this.scene.entities) {
+            for (const other of (this.scene as any).entities as Unit[]) {
                 if (other instanceof Unit && other !== this && other.faction === 'ally' && other.imageKey !== this.imageKey) {
                     if (Math.abs(this.x - other.x) < 20) {
                         collisionWithDifferentAlly = true;
@@ -162,16 +190,14 @@ export class Unit extends Entity {
                 });
                 this.timeSinceLastAttack = 0;
             }
-        }
-        else {
+        } else {
             if (!collisionWithDifferentAlly) {
                 this.x += this.speed * deltaTime;
                 if (this.sprite) {
                     this.sprite.x = this.x;
                 }
                 this.timeSinceLastAttack = 0;
-            }
-            else {
+            } else {
                 this.timeSinceLastAttack = 0;
             }
         }
@@ -182,21 +208,19 @@ export class Unit extends Entity {
     /**
      * 体力表示テキストを更新するで。
      */
-    updateHealthText() {
+    updateHealthText(): void {
         this.healthText.setText(`${this.health}`);
     }
     /**
      * 対象に攻撃するで。
      * @param target 攻撃対象（UnitまたはTower）
      */
-    attackTarget(target) {
-        if (!target.active)
-            return;
+    attackTarget(target: Unit | Tower): void {
+        if (!target.active) return;
         target.health -= this.attack;
         if (target.health <= 0) {
             target.destroy();
-        }
-        else {
+        } else {
             if (target instanceof Tower || target instanceof Unit) {
                 target.updateHealthText();
             }
@@ -205,15 +229,14 @@ export class Unit extends Entity {
     /**
      * ユニットを破壊するで。
      */
-    destroy() {
+    destroy(): void {
         console.log(`${this.faction} unit destroyed!`);
-        if (this.sprite)
-            this.sprite.destroy();
-        if (this.healthText)
-            this.healthText.destroy();
+        if (this.sprite) this.sprite.destroy();
+        if (this.healthText) this.healthText.destroy();
         this.active = false;
     }
 }
+
 // --- タワークラス ---
 /**
  * Tower
@@ -225,18 +248,23 @@ export class Unit extends Entity {
  * - Entity, 設定値のimportが必要やで。
  */
 export class Tower extends Entity {
-    constructor(scene, x, y, health, color) {
+    health: number;
+    active: boolean;
+    sprite: Phaser.GameObjects.Rectangle;
+    healthText: Phaser.GameObjects.Text;
+
+    constructor(scene: Phaser.Scene, x: number, y: number, health: number, color: number) {
         super(scene, x, y);
         this.health = health;
         this.active = true;
         this.sprite = scene.add.rectangle(x, y, 40, 40, color);
-        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { fontSize: '16px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
+        this.healthText = scene.add.text(x, y - 30, `${this.health}`, { fontSize: '16px', fill: '#ffffff' } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0.5);
     }
     /**
      * タワーの状態更新やで。
      * @param deltaTime フレーム間の経過時間
      */
-    update(deltaTime) {
+    update(deltaTime: number): void {
         this.sprite.x = this.x;
         this.sprite.y = this.y;
         this.healthText.x = this.x;
@@ -245,14 +273,14 @@ export class Tower extends Entity {
     /**
      * 体力表示テキストを更新するで。
      */
-    updateHealthText() {
+    updateHealthText(): void {
         this.healthText.setText(`${this.health}`);
     }
     /**
      * ダメージを受ける処理やで。
      * @param damage ダメージ量
      */
-    takeDamage(damage) {
+    takeDamage(damage: number): void {
         this.health -= damage;
         console.log(`Tower takes ${damage} damage, remaining health: ${this.health}`);
         this.updateHealthText();
@@ -263,13 +291,14 @@ export class Tower extends Entity {
     /**
      * タワーを破壊するで。
      */
-    destroy() {
+    destroy(): void {
         console.log("Tower destroyed! Game Over.");
         this.sprite.destroy();
         this.healthText.destroy();
         this.active = false;
     }
 }
+
 // --- Phaser シーン ---
 /**
  * MyScene
@@ -281,11 +310,14 @@ export class Tower extends Entity {
  * - Phaser, config, Unit, Towerのimportが必要やで。
  */
 export class MyScene extends Phaser.Scene {
+    entities: Entity[];
+    leftTower!: Tower;
+    rightTower!: Tower;
     constructor() {
         super({ key: "MyScene" });
         this.entities = [];
     }
-    preload() {
+    preload(): void {
         // tmp_rabbit 用のアニメーションフレームをプリロード
         this.load.image('frame1', `${ASSETS_PATH}rabbit_unit/rabbit_walk1.png`);
         this.load.image('frame2', `${ASSETS_PATH}rabbit_unit/rabbit_walk2.png`);
@@ -293,7 +325,7 @@ export class MyScene extends Phaser.Scene {
         this.load.image('frame4', `${ASSETS_PATH}rabbit_unit/rabbit_attack2.png`);
         this.load.image('frame5', `${ASSETS_PATH}rabbit_unit/rabbit_attack3.png`);
     }
-    create() {
+    create(): void {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         // 左右のタワーを作成
@@ -334,18 +366,30 @@ export class MyScene extends Phaser.Scene {
     /**
      * 敵ユニットを出現させるで。
      */
-    spawnEnemyUnit() {
+    spawnEnemyUnit(): void {
         const unitTypes = Object.keys(UNIT_TYPES);
         const randomType = unitTypes[Math.floor(Math.random() * unitTypes.length)];
         const typeConfig = UNIT_TYPES[randomType];
-        const unit = new Unit(this, this.rightTower.x - 20, this.rightTower.y, typeConfig.health, typeConfig.attack, -typeConfig.speed, // 左方向へ移動
-        typeConfig.imageKey, "enemy", null, typeConfig.attackRange, typeConfig.stopDistance, typeConfig.attackInterval);
+        const unit = new Unit(
+            this,
+            this.rightTower.x - 20,
+            this.rightTower.y,
+            typeConfig.health,
+            typeConfig.attack,
+            -typeConfig.speed, // 左方向へ移動
+            typeConfig.imageKey,
+            "enemy",
+            null,
+            typeConfig.attackRange,
+            typeConfig.stopDistance,
+            typeConfig.attackInterval
+        );
         this.entities.push(unit);
     }
     /**
      * ユニット生成ボタンを作成するで。
      */
-    createUnitButtons() {
+    createUnitButtons(): void {
         const unitTypes = Object.keys(UNIT_TYPES);
         const startX = 100;
         const startY = this.cameras.main.height - 40;
@@ -361,14 +405,27 @@ export class MyScene extends Phaser.Scene {
      * @param x ボタンx座標
      * @param y ボタンy座標
      */
-    createUnitButton(typeKey, x, y) {
+    createUnitButton(typeKey: string, x: number, y: number): void {
         const buttonWidth = 70, buttonHeight = 30;
         let button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x666666).setInteractive();
-        let text = this.add.text(x, y, typeKey, { fontSize: '14px', color: '#ffffff' }).setOrigin(0.5, 0.5);
+        let text = this.add.text(x, y, typeKey, { fontSize: '14px', color: '#ffffff' } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0.5);
         button.on('pointerdown', () => {
             // ボタン押下で ally 側ユニットを出現させる（左タワー側）
             const typeConfig = UNIT_TYPES[typeKey];
-            const unit = new Unit(this, this.leftTower.x + 20, this.leftTower.y, typeConfig.health, typeConfig.attack, typeConfig.speed, typeConfig.imageKey, "ally", null, typeConfig.attackRange, typeConfig.stopDistance, typeConfig.attackInterval);
+            const unit = new Unit(
+                this,
+                this.leftTower.x + 20,
+                this.leftTower.y,
+                typeConfig.health,
+                typeConfig.attack,
+                typeConfig.speed,
+                typeConfig.imageKey,
+                "ally",
+                null,
+                typeConfig.attackRange,
+                typeConfig.stopDistance,
+                typeConfig.attackInterval
+            );
             this.entities.push(unit);
         });
     }
@@ -377,12 +434,12 @@ export class MyScene extends Phaser.Scene {
      * @param time 現在時刻
      * @param delta 前フレームからの経過ミリ秒
      */
-    update(time, delta) {
+    update(time: number, delta: number): void {
         const deltaTime = delta / 500;
         this.entities.forEach(entity => {
             entity.update(deltaTime);
         });
         // inactive なエンティティは除去
-        this.entities = this.entities.filter(entity => !("active" in entity && entity.active === false));
+        this.entities = this.entities.filter(entity => !("active" in entity && (entity as any).active === false));
     }
 }

@@ -7,13 +7,16 @@
 // 制限事項:
 // - 他のロジックはcore/以下に分離してるで。
 // =========================================
+
 import Phaser from 'phaser';
-import { MyScene } from './core/scene.js';
-const config = {
+import { MyScene } from './core/scene';
+
+const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     width: 1200,
     height: 600,
     backgroundColor: "#333333",
     scene: MyScene,
 };
+
 const game = new Phaser.Game(config);

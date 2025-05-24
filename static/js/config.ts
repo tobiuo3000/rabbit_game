@@ -7,6 +7,17 @@
 // 制限事項:
 // - 設定値を変更したら、他のファイルもimportし直す必要があるで。
 // =========================================
+
+export interface UnitTypeConfig {
+    health: number;
+    attack: number;
+    speed: number;
+    imageKey: string;
+    attackRange: number;
+    stopDistance: number;
+    attackInterval: number;
+}
+
 export const EASY_CONFIG = {
     BASE_HEALTH: 50,
     BASE_ATTACK: 10,
@@ -20,8 +31,10 @@ export const EASY_CONFIG = {
     BASE_HEALTH_TEXT_COLOR: '#ffffff',
     RABBIT_ANIMATION_FPS: 2,
 };
+
 export const ASSETS_PATH = './static/assets/';
-export const UNIT_TYPES = {
+
+export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
     tmp_rabbit: {
         health: EASY_CONFIG.BASE_HEALTH,
         attack: EASY_CONFIG.BASE_ATTACK,

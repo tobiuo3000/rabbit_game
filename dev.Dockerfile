@@ -21,5 +21,7 @@ RUN if [ -f package.json ]; then npm install; fi
 VOLUME ["/app"]
 COPY . .
 
+RUN npx webpack
+
 EXPOSE 8000
 CMD ["python", "app.py"]

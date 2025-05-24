@@ -1,17 +1,15 @@
-// =========================================
-// unit.js
-// ユニット（味方・敵）のクラスやで。
-//
-// 主な仕様:
-// - 体力・攻撃・移動・アニメーション・体力表示などを管理
-// - タワーや他ユニットとの戦闘処理もここでやる
-// 制限事項:
-// - Phaser, Entity, Tower, 設定値のimportが必要やで。
-// =========================================
-
+/**
+ * unit.ts
+ * ユニット（味方・敵）のクラスやで。
+ *
+ * 主な仕様:
+ * - 体力・攻撃・移動・アニメーション・体力表示などを管理
+ * - タワーや他ユニットとの戦闘処理もここでやる
+ * 制限事項:
+ * - Phaser, Entity, Tower, 設定値のimportが必要やで。
+ */
 import { Entity } from './entity.js';
 import { EASY_CONFIG } from '../config.js';
-
 export class Unit extends Entity {
     constructor(scene, x, y, health, attack, speed, imageKey, faction, specialAbility = null, attackRange = 50, stopDistance = 20, attackInterval = 1) {
         super(scene, x, y);
@@ -27,27 +25,32 @@ export class Unit extends Entity {
         this.timeSinceLastAttack = 0;
         this.active = true;
         this.imageKey = imageKey;
-        if (imageKey === 'rabbit' && 
+        if (imageKey === 'rabbit' &&
             scene.textures.exists('frame1') && scene.textures.exists('frame2')) {
             this.sprite = scene.add.sprite(x, y, 'frame1').setScale(0.1);
-            if (this.faction === "ally") {
+            if (this.faction === 'ally') {
                 this.sprite.setFlipX(true);
             }
-        } else {
-            const fallbackColor = (faction === "ally") ? 0x00ff00 : 0xff0000;
+        }
+        else {
+            const fallbackColor = faction === 'ally' ? 0x00ff00 : 0xff0000;
             this.sprite = scene.add.rectangle(x, y, 20, 20, fallbackColor);
         }
-        this.healthText = scene.add.text(x, this.healthTextY, `${this.health}`, { 
-            fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE, 
-            fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR 
+        this.healthText = scene.add.text(x, this.healthTextY, `${this.health}`, {
+            fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE,
+            fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR,
         }).setOrigin(0.5, 0.5);
     }
     update(deltaTime) {
-        if (!this.active) return;
+        if (!this.active)
+            return;
         let enemyInStopRange = false;
         let attackTargets = [];
         for (const other of this.scene.entities) {
-            if (other !== this && other instanceof Unit && other.active && other.faction !== this.faction) {
+            if (other !== this &&
+                other instanceof Unit &&
+                other.active &&
+                other.faction !== this.faction) {
                 const distance = Phaser.Math.Distance.Between(this.x, this.y, other.x, other.y);
                 if (distance < this.stopDistance) {
                     enemyInStopRange = true;
@@ -58,9 +61,10 @@ export class Unit extends Entity {
             }
         }
         let enemyTower = null;
-        if (this.faction === "ally") {
+        if (this.faction === 'ally') {
             enemyTower = this.scene.rightTower;
-        } else if (this.faction === "enemy") {
+        }
+        else if (this.faction === 'enemy') {
             enemyTower = this.scene.leftTower;
         }
         if (enemyTower && enemyTower.active) {
@@ -73,35 +77,40 @@ export class Unit extends Entity {
         if (this.sprite instanceof Phaser.GameObjects.Sprite) {
             if (enemyInStopRange) {
                 if (this.scene.anims.exists('rabbit_attack_anim') &&
-                    (!this.sprite.anims.currentAnim || this.sprite.anims.currentAnim.key !== 'rabbit_attack_anim')) {
+                    (!this.sprite.anims.currentAnim ||
+                        this.sprite.anims.currentAnim.key !== 'rabbit_attack_anim')) {
                     this.sprite.play('rabbit_attack_anim');
                 }
-            } else {
+            }
+            else {
                 if (this.scene.anims.exists('rabbit_walk_anim') &&
-                    (!this.sprite.anims.currentAnim || this.sprite.anims.currentAnim.key !== 'rabbit_walk_anim')) {
+                    (!this.sprite.anims.currentAnim ||
+                        this.sprite.anims.currentAnim.key !== 'rabbit_walk_anim')) {
                     this.sprite.play('rabbit_walk_anim');
                 }
             }
         }
-        if(this.faction === 'ally') {
-            const sameTypeAllies = this.scene.entities.filter(u => 
-                u instanceof Unit && 
-                u.faction === 'ally' && 
+        if (this.faction === 'ally') {
+            const sameTypeAllies = this.scene.entities.filter((u) => u instanceof Unit &&
+                u.faction === 'ally' &&
                 u.imageKey === this.imageKey &&
-                Math.abs(u.x - this.x) < 10
-            );
+                Math.abs(u.x - this.x) < 10);
             sameTypeAllies.sort((a, b) => a.x - b.x);
             const index = sameTypeAllies.indexOf(this);
             const offsetY = index * 15;
             this.healthText.y = this.healthTextY + offsetY;
-        } else {
+        }
+        else {
             this.healthText.y = this.healthTextY;
         }
         let collisionWithDifferentAlly = false;
-        if(this.faction === 'ally') {
-            for(const other of this.scene.entities) {
-                if(other instanceof Unit && other !== this && other.faction === 'ally' && other.imageKey !== this.imageKey) {
-                    if(Math.abs(this.x - other.x) < 20) {
+        if (this.faction === 'ally') {
+            for (const other of this.scene.entities) {
+                if (other instanceof Unit &&
+                    other !== this &&
+                    other.faction === 'ally' &&
+                    other.imageKey !== this.imageKey) {
+                    if (Math.abs(this.x - other.x) < 20) {
                         collisionWithDifferentAlly = true;
                         break;
                     }
@@ -111,19 +120,21 @@ export class Unit extends Entity {
         if (enemyInStopRange) {
             this.timeSinceLastAttack += deltaTime;
             if (this.timeSinceLastAttack >= this.attackInterval) {
-                attackTargets.forEach(target => {
+                attackTargets.forEach((target) => {
                     this.attackTarget(target);
                 });
                 this.timeSinceLastAttack = 0;
             }
-        } else {
-            if(!collisionWithDifferentAlly) {
+        }
+        else {
+            if (!collisionWithDifferentAlly) {
                 this.x += this.speed * deltaTime;
-                if(this.sprite) {
+                if (this.sprite) {
                     this.sprite.x = this.x;
                 }
                 this.timeSinceLastAttack = 0;
-            } else {
+            }
+            else {
                 this.timeSinceLastAttack = 0;
             }
         }
@@ -134,11 +145,13 @@ export class Unit extends Entity {
         this.healthText.setText(`${this.health}`);
     }
     attackTarget(target) {
-        if (!target.active) return;
+        if (!target.active)
+            return;
         target.health -= this.attack;
         if (target.health <= 0) {
             target.destroy();
-        } else {
+        }
+        else {
             if (typeof target.updateHealthText === 'function') {
                 target.updateHealthText();
             }
@@ -146,8 +159,10 @@ export class Unit extends Entity {
     }
     destroy() {
         console.log(`${this.faction} unit destroyed!`);
-        if(this.sprite) this.sprite.destroy();
-        if(this.healthText) this.healthText.destroy();
+        if (this.sprite)
+            this.sprite.destroy();
+        if (this.healthText)
+            this.healthText.destroy();
         this.active = false;
     }
 }

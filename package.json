@@ -17,7 +17,10 @@
     "url": "https://github.com/tobiuo3000/rabbit_game/issues"
   },
   "homepage": "https://github.com/tobiuo3000/rabbit_game#readme",
-  "dependencies": {
-    "phaser": "^3.88.2"
+  "devDependencies": {
+    "phaser": "^3.90.0",
+    "ts-loader": "^9.5.2",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1"
   }
 }

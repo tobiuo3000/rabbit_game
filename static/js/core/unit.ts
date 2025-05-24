@@ -9,9 +9,9 @@
  * - Phaser, Entity, Tower, 設定値のimportが必要やで。
  */
 
-import { Entity } from './entity.js';
-import { EASY_CONFIG } from '../config.js';
-import type { Tower } from './tower.js';
+import { Entity } from './entity';
+import { EASY_CONFIG } from '../config';
+import type { Tower } from './tower';
 
 export class Unit extends Entity {
     health: number;
@@ -75,7 +75,7 @@ export class Unit extends Entity {
             {
                 fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE,
                 fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR,
-            }
+            } as Phaser.Types.GameObjects.Text.TextStyle
         ).setOrigin(0.5, 0.5);
     }
     update(deltaTime: number): void {

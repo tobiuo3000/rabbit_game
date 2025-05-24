@@ -9,7 +9,7 @@
  */
 
 
-import { UNIT_TYPES, EASY_CONFIG, ASSETS_PATH } from '../config.js';
+import { UNIT_TYPES, EASY_CONFIG, ASSETS_PATH } from '../config';
 import { Unit } from './unit.js';
 import { Tower } from './tower.js';
 
@@ -97,7 +97,7 @@ export class MyScene extends Phaser.Scene {
     createUnitButton(typeKey: string, x: number, y: number): void {
         const buttonWidth = 70, buttonHeight = 30;
         let button = this.add.rectangle(x, y, buttonWidth, buttonHeight, 0x666666).setInteractive();
-        let text = this.add.text(x, y, typeKey, { fontSize: '14px', fill: '#ffffff' }).setOrigin(0.5, 0.5);
+        let text = this.add.text(x, y, typeKey, { fontSize: '14px', fill: '#ffffff' } as Phaser.Types.GameObjects.Text.TextStyle).setOrigin(0.5, 0.5);
         button.on('pointerdown', () => {
             const typeConfig = UNIT_TYPES[typeKey];
             const unit = new Unit(
