@@ -9,15 +9,15 @@
  */
 
 export class Entity {
-    scene: Phaser.Scene;
-    x: number;
-    y: number;
-    constructor(scene: Phaser.Scene, x: number, y: number) {
-        this.scene = scene;
-        this.x = x;
-        this.y = y;
-    }
-    update(deltaTime: number): void {
-        // 各クラスでオーバーライド
-    }
+  scene: Phaser.Scene;
+  x: number;
+  y: number;
+  constructor(scene: Phaser.Scene, x: number, y: number) {
+    this.scene = scene;
+    this.x = x;
+    this.y = y;
+  }
+  update(deltaTime: number): void {
+    // 各クラスでオーバーライド
+  }
 }
