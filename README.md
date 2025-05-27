@@ -23,8 +23,20 @@
 │   ├── js/                 # TypeScript/JavaScriptのソースコード
 │   │   ├── main.ts         # ゲームのエントリポイント
 │   │   ├── config.ts       # ゲーム設定
-│   │   └── core/           # ゲームのコアロジック（エンティティ、シーン、タワー、ユニット）
-│   │   └── util/           # ユーティリティ関数
+│   │   ├── core/           # ゲームのコアロジック
+│   │   │   ├── objects/    # エンティティ・タワー等のクラス
+│   │   │   │   ├── entity.ts
+│   │   │   │   ├── tower.ts
+│   │   │   ├── scenes/     # 各シーン（ゲーム、スタート、クリア、ステージ選択）
+│   │   │   │   ├── game.ts
+│   │   │   │   ├── start.ts
+│   │   │   │   ├── game_clear.ts
+│   │   │   │   ├── stage_select.ts
+│   │   │   └── units/      # ユニット関連（味方・敵・拠点）
+│   │   │       ├── ally.ts
+│   │   │       ├── enemy.ts
+│   │   │       ├── base.ts
+│   │   │       └── index.ts
 │   └── assets/             # 画像等のアセット
 │       └── rabbit_unit/    # ウサギユニットの画像
 ├── templates/
