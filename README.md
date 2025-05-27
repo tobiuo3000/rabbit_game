@@ -12,36 +12,36 @@
 ## ディレクトリ・ファイル構成と概要
 
 ```
-├── app.py                  # Flaskアプリのエントリポイント。Webサーバ起動用
-├── dev.Dockerfile          # 開発用Dockerfile。Python,Nodeの依存関係のセットアップ
-├── package.json            # Node.js用パッケージ管理ファイル。PhaserやWebpack等の依存管理
-├── pyproject.toml          # Python用パッケージ管理ファイル。Flask等の依存管理
-├── tsconfig.json           # TypeScriptのコンパイラ設定
-├── uv.lock                 # Python依存のロックファイル
-├── webpack.config.js       # Webpackの設定ファイル
+├── app.py                    # Flaskアプリのエントリポイント。Webサーバ起動用
+├── dev.Dockerfile            # 開発用Dockerfile。Python,Nodeの依存関係のセットアップ
+├── package.json              # Node.js用パッケージ管理ファイル。PhaserやWebpack等の依存管理
+├── pyproject.toml            # Python用パッケージ管理ファイル。Flask等の依存管理
+├── tsconfig.json             # TypeScriptのコンパイラ設定
+├── uv.lock                   # Python依存のロックファイル
+├── webpack.config.js         # Webpackの設定ファイル
 ├── static/
-│   ├── js/                 # TypeScript/JavaScriptのソースコード
-│   │   ├── main.ts         # ゲームのエントリポイント
-│   │   ├── config.ts       # ゲーム設定
-│   │   ├── core/           # ゲームのコアロジック
-│   │   │   ├── objects/    # エンティティ・タワー等のクラス
+│   ├── js/                   # TypeScript/JavaScriptのソースコード
+│   │   ├── core/             # ゲームのコアロジック
+│   │   │   ├── main.ts       # ゲームのエントリポイント
+│   │   │   ├── config.ts     # ゲーム設定
+│   │   │   ├── objects/      # エンティティ・タワー等のクラス
 │   │   │   │   ├── entity.ts
 │   │   │   │   ├── tower.ts
-│   │   │   ├── scenes/     # 各シーン（ゲーム、スタート、クリア、ステージ選択）
+│   │   │   ├── scenes/       # 各シーン（ゲーム、スタート、クリア、ステージ選択）
 │   │   │   │   ├── game.ts
 │   │   │   │   ├── start.ts
 │   │   │   │   ├── game_clear.ts
 │   │   │   │   ├── stage_select.ts
-│   │   │   └── units/      # ユニット関連（味方・敵・拠点）
+│   │   │   └── units/        # ユニット関連（味方・敵・拠点）
 │   │   │       ├── ally.ts
 │   │   │       ├── enemy.ts
 │   │   │       ├── base.ts
 │   │   │       └── index.ts
-│   └── assets/             # 画像等のアセット
-│       └── rabbit_unit/    # ウサギユニットの画像
+│   └── assets/               # 画像等のアセット
+│       └── rabbit_unit/      # ウサギユニットの画像
 ├── templates/
-│   └── rabbit_game.html    # ゲーム画面のHTMLテンプレート
-└── README.md               # このファイル！
+│   └── rabbit_game.html      # ゲーム画面のHTMLテンプレート
+└── README.md                 # このファイル！
 ```
 
 ## 開発環境の構築方法
@@ -50,7 +50,7 @@
 
    VScodeでコマンドパレットを出して以下を実行
 
-   ```
+   ```txt
    Dev containers: Rebuild Container Without Cache
    ```
 
@@ -58,7 +58,7 @@
 
    ```bash
    docker build -f dev.Dockerfile -t rabbit_game_dev .
-   docker run --rm -it -p 8000:8000 -v $(pwd):/app rabbit_game_dev
+   docker run --rm -it -d -p 5000:5000 -v $(pwd):/app rabbit_game_dev
    ```
 
 3. **ローカルで直接構築する場合**
