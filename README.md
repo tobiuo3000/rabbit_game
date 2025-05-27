@@ -69,14 +69,14 @@
 1. **TypeScript/JSファイルを変更した場合**
    - もう一度ビルドが必要：
      ```bash
-     tsc && npx webpack
+     npm run build
      ```
    - その後、ブラウザをリロードして動作確認
 
 2. **Python/Flask側を変更した場合**
-   - サーバを再起動してな：
+   - サーバを再起動：
      ```bash
-     uv run app.py
+     npm run start
      ```
    - その後、ブラウザをリロード
 

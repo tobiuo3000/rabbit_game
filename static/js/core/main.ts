@@ -9,10 +9,10 @@
 // =========================================
 
 import Phaser from "phaser";
-import { GameScene } from "./core/scene";
-import { StartScene } from "./core/start_scene";
-import { StageSelectScene } from "./core/stage_select_scene";
-import { GameClearScene } from "./core/game_clear_scene";
+import { GameScene } from "./scenes/game";
+import { StartScene } from "./scenes/start";
+import { StageSelectScene } from "./scenes/stage_select";
+import { GameClearScene } from "./scenes/game_clear";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,

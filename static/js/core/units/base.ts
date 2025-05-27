@@ -1,17 +1,6 @@
-/**
- * unit.ts
- * ユニット（味方・敵）のクラスやで。
- *
- * 主な仕様:
- * - 体力・攻撃・移動・アニメーション・体力表示などを管理
- * - タワーや他ユニットとの戦闘処理もここでやる
- * 制限事項:
- * - Phaser, Entity, Tower, 設定値のimportが必要やで。
- */
-
-import { Entity } from "./entity";
+import { Entity } from "../objects/entity";
 import { EASY_CONFIG } from "../config";
-import type { Tower } from "./tower";
+import type { Tower } from "../objects/tower";
 
 export class Unit extends Entity {
   health: number;
@@ -79,49 +68,11 @@ export class Unit extends Entity {
       } as Phaser.Types.GameObjects.Text.TextStyle)
       .setOrigin(0.5, 0.5);
   }
-  update(deltaTime: number): void {
-    if (!this.active) return;
-    let enemyInStopRange = false;
-    let attackTargets: (Unit | Tower)[] = [];
-    for (const other of (this.scene as any).entities) {
-      if (
-        other !== this &&
-        other instanceof Unit &&
-        other.active &&
-        other.faction !== this.faction
-      ) {
-        const distance = Phaser.Math.Distance.Between(
-          this.x,
-          this.y,
-          other.x,
-          other.y
-        );
-        if (distance < this.stopDistance) {
-          enemyInStopRange = true;
-        }
-        if (distance < this.attackRange) {
-          attackTargets.push(other);
-        }
-      }
-    }
-    let enemyTower: Tower | null = null;
-    if (this.faction === "ally") {
-      enemyTower = (this.scene as any).rightTower;
-    } else if (this.faction === "enemy") {
-      enemyTower = (this.scene as any).leftTower;
-    }
-    if (enemyTower && enemyTower.active) {
-      const dTower = Phaser.Math.Distance.Between(
-        this.x,
-        this.y,
-        enemyTower.x,
-        enemyTower.y
-      );
-      if (dTower < this.stopDistance) {
-        enemyInStopRange = true;
-        attackTargets.push(enemyTower);
-      }
-    }
+  /**
+   * ユニットのアニメーションを切り替える処理
+   * @param enemyInStopRange 停止範囲内に敵がいるかどうか
+   */
+  updateAnimation(enemyInStopRange: boolean): void {
     if (
       this.sprite instanceof Phaser.GameObjects.Sprite &&
       (this.sprite as any).anims
@@ -144,39 +95,67 @@ export class Unit extends Entity {
         }
       }
     }
-    if (this.faction === "ally") {
-      const sameTypeAllies = (this.scene as any).entities.filter(
-        (u: any) =>
-          u instanceof Unit &&
-          u.faction === "ally" &&
-          u.imageKey === this.imageKey &&
-          Math.abs(u.x - this.x) < 10
-      );
-      sameTypeAllies.sort((a: any, b: any) => a.x - b.x);
-      const index = sameTypeAllies.indexOf(this);
-      const offsetY = index * 15;
-      this.healthText.y = this.healthTextY + offsetY;
-    } else {
-      this.healthText.y = this.healthTextY;
-    }
-    let collisionWithAllyPriority = false;
-    if (this.faction === "ally") {
-      for (const other of (this.scene as any).entities) {
-        if (
-          other instanceof Unit &&
-          other !== this &&
-          other.faction === "ally" &&
-          other.x > this.x &&
-          Math.abs(this.x - other.x) < 20 &&
-          (other.priority < this.priority ||
-            (other.priority === this.priority &&
-              other.imageKey !== this.imageKey)) // 同じ優先度で別種
-        ) {
-          collisionWithAllyPriority = true;
-          break;
+  }
+  checkPriorityCollision(): [boolean, boolean] {
+    // デフォルトは両方false
+    return [false, false];
+  }
+  getEnemyTower(): Tower | null {
+    return null;
+  }
+  updateHealthTextPosition(): void {
+    this.healthText.y = this.healthTextY;
+  }
+  getMoveDirection(): number {
+    return 1;
+  }
+  update(deltaTime: number): void {
+    if (!this.active) return;
+    let enemyInStopRange = false;
+    let attackTargets: (Unit | Tower)[] = [];
+    // --- 敵ユニット・タワーの探索 ---
+    for (const other of (this.scene as any).entities) {
+      if (
+        other !== this &&
+        other instanceof Unit &&
+        other.active &&
+        other.faction !== this.faction
+      ) {
+        const distance = Phaser.Math.Distance.Between(
+          this.x,
+          this.y,
+          other.x,
+          other.y
+        );
+        if (distance < this.stopDistance) {
+          enemyInStopRange = true;
+        }
+        if (distance < this.attackRange) {
+          attackTargets.push(other);
         }
       }
     }
+    const enemyTower = this.getEnemyTower();
+    if (enemyTower && enemyTower.active) {
+      const dTower = Phaser.Math.Distance.Between(
+        this.x,
+        this.y,
+        enemyTower.x,
+        enemyTower.y
+      );
+      if (dTower < this.stopDistance) {
+        enemyInStopRange = true;
+        attackTargets.push(enemyTower);
+      }
+    }
+    // --- アニメーション切り替え ---
+    this.updateAnimation(enemyInStopRange);
+    // --- 体力テキスト位置調整 ---
+    this.updateHealthTextPosition();
+    // --- 優先度衝突判定 ---
+    const [collisionWithAllyPriority, collisionWithEnemyPriority] =
+      this.checkPriorityCollision();
+    // --- 攻撃・移動処理 ---
     if (enemyInStopRange) {
       this.timeSinceLastAttack += deltaTime;
       if (this.timeSinceLastAttack >= this.attackInterval) {
@@ -186,8 +165,12 @@ export class Unit extends Entity {
         this.timeSinceLastAttack = 0;
       }
     } else {
-      if (!collisionWithAllyPriority) {
-        this.x += this.speed * deltaTime;
+      const collision = this.getCollisionFlag(
+        collisionWithAllyPriority,
+        collisionWithEnemyPriority
+      );
+      if (!collision) {
+        this.x += this.speed * deltaTime * this.getMoveDirection();
         if (this.sprite) {
           this.sprite.x = this.x;
         }
@@ -198,6 +181,13 @@ export class Unit extends Entity {
     }
     this.healthText.x = this.x;
     this.updateHealthText();
+  }
+  getCollisionFlag(
+    collisionWithAllyPriority: boolean,
+    collisionWithEnemyPriority: boolean
+  ): boolean {
+    // デフォルトはどちらもfalse
+    return false;
   }
   updateHealthText(): void {
     this.healthText.setText(`${this.health}`);

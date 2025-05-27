@@ -16,6 +16,7 @@ export interface UnitTypeConfig {
   attackRange: number;
   stopDistance: number;
   attackInterval: number;
+  priority: number;
 }
 
 export const EASY_CONFIG = {
@@ -43,6 +44,7 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
     attackRange: EASY_CONFIG.BASE_ATTACK_RANGE,
     stopDistance: EASY_CONFIG.BASE_STOP_DISTANCE,
     attackInterval: EASY_CONFIG.BASE_ATTACK_INTERVAL,
+    priority: 10,
   },
   archer: {
     health: 20,
@@ -52,6 +54,7 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
     attackRange: 90,
     stopDistance: 85,
     attackInterval: 5,
+    priority: 20,
   },
   // cavalry: { ... },
   // mage:    { ... },

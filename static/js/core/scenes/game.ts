@@ -9,8 +9,8 @@
  */
 
 import { UNIT_TYPES, EASY_CONFIG, ASSETS_PATH, STAGE_CONFIGS } from "../config";
-import { Unit } from "./unit.js";
-import { Tower } from "./tower.js";
+import { AllyUnit, EnemyUnit } from "../units";
+import { Tower } from "../objects/tower";
 
 export class GameScene extends Phaser.Scene {
   // ゲーム内の全てのエンティティを管理する配列
@@ -113,7 +113,7 @@ export class GameScene extends Phaser.Scene {
       // 敵を一体生成
       const typeConfig = UNIT_TYPES[wave.type];
       if (!typeConfig) return;
-      const unit = new Unit(
+      const unit = new EnemyUnit(
         this,
         this.rightTower.x - 20,
         this.rightTower.y,
@@ -121,11 +121,11 @@ export class GameScene extends Phaser.Scene {
         typeConfig.attack,
         -typeConfig.speed,
         typeConfig.imageKey,
-        "enemy",
         null,
         typeConfig.attackRange,
         typeConfig.stopDistance,
-        typeConfig.attackInterval
+        typeConfig.attackInterval,
+        typeConfig.priority
       );
       this.entities.push(unit);
       this.spawnedCount++;
@@ -170,7 +170,7 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5);
     button.on("pointerdown", () => {
       const typeConfig = UNIT_TYPES[typeKey];
-      const unit = new Unit(
+      const unit = new AllyUnit(
         this,
         this.leftTower.x + 20,
         this.leftTower.y,
@@ -178,11 +178,11 @@ export class GameScene extends Phaser.Scene {
         typeConfig.attack,
         typeConfig.speed,
         typeConfig.imageKey,
-        "ally",
         null,
         typeConfig.attackRange,
         typeConfig.stopDistance,
-        typeConfig.attackInterval
+        typeConfig.attackInterval,
+        typeConfig.priority
       );
       this.entities.push(unit);
     });
@@ -266,6 +266,61 @@ export class GameScene extends Phaser.Scene {
     });
   }
   /**
+   * ゲームオーバー時の選択肢UIを表示する処理
+   * 主な仕様:
+   * - 画面中央に「もう一度やり直す」「ステージセレクトへ」ボタンを表示
+   * - ボタン押下で対応するシーンへ遷移
+   * 制限事項:
+   * - 既存のエンティティはdestroyAllEntitiesで消してから呼ぶこと
+   */
+  showGameOverOptions(): void {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    // 背景半透明パネル
+    const panel = this.add.rectangle(
+      width / 2,
+      height / 2,
+      320,
+      180,
+      0x000000,
+      0.7
+    );
+    // メッセージ
+    const msg = this.add
+      .text(width / 2, height / 2 - 40, "ゲームオーバー...", {
+        fontSize: "28px",
+        color: "#fff",
+      })
+      .setOrigin(0.5);
+    // 「もう一度やり直す」ボタン
+    const retryBtn = this.add
+      .rectangle(width / 2, height / 2 + 10, 180, 40, 0xcc4444)
+      .setInteractive();
+    const retryText = this.add
+      .text(width / 2, height / 2 + 10, "もう一度やり直す", {
+        fontSize: "20px",
+        color: "#fff",
+      })
+      .setOrigin(0.5);
+    // 「セレクトへ」ボタン
+    const selectBtn = this.add
+      .rectangle(width / 2, height / 2 + 60, 180, 40, 0x4488cc)
+      .setInteractive();
+    const selectText = this.add
+      .text(width / 2, height / 2 + 60, "ステージセレクトへ", {
+        fontSize: "20px",
+        color: "#fff",
+      })
+      .setOrigin(0.5);
+    // ボタンイベント
+    retryBtn.on("pointerdown", () => {
+      this.scene.start("GameScene", { stage: this.currentStage });
+    });
+    selectBtn.on("pointerdown", () => {
+      this.scene.start("StageSelectScene");
+    });
+  }
+  /**
    * 毎フレームの更新処理
    * 各エンティティの状態更新・削除、タワーのHP判定・ステージ遷移を行う。
    * @param time 現在時刻
@@ -287,6 +342,13 @@ export class GameScene extends Phaser.Scene {
       this.destroyAllEntities();
       this._stageClearUIShown = true;
       this.showStageClearOptions();
+      return;
+    }
+    // 左タワーのHPが0以下ならゲームオーバー
+    if (this.leftTower && this.leftTower.health <= 0) {
+      this.destroyAllEntities();
+      this._stageClearUIShown = true;
+      this.showGameOverOptions();
       return;
     }
   }

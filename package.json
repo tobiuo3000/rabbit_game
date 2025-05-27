@@ -4,6 +4,9 @@
   "description": "2Dタワーディフェンスゲームの試作品です",
   "main": "index.js",
   "scripts": {
+    "build": "tsc && npx webpack",
+    "dev": "tsc --watch & npx webpack --watch",
+    "start": "uv run app.py",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
