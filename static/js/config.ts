@@ -1,11 +1,11 @@
 // =========================================
 // config.ts
-// ゲーム全体の定数・設定値をまとめるファイルやで。
+// ゲーム全体の定数・設定値をまとめるファイル
 //
 // 主な仕様:
 // - ゲームバランスやアセットパス、ユニット種別などの定数を管理
 // 制限事項:
-// - 設定値を変更したら、他のファイルもimportし直す必要があるで。
+// - 設定値を変更したら、他のファイルもimportし直す必要がある
 // =========================================
 
 export interface UnitTypeConfig {
@@ -57,3 +57,53 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
   // mage:    { ... },
   // tank:    { ... }
 };
+
+// =============================
+// ステージごとの敵出現パターン設定
+// 各ステージで出現する敵の種類や数をここで管理する
+// =============================
+export interface StageConfig {
+  enemyWaves: Array<{
+    type: string; // UNIT_TYPESのキー
+    count: number;
+  }>;
+}
+
+export const STAGE_CONFIGS: StageConfig[] = [
+  // 1ステージ目
+  {
+    enemyWaves: [{ type: "tmp_rabbit", count: 3 }],
+  },
+  // 2ステージ目
+  {
+    enemyWaves: [
+      { type: "tmp_rabbit", count: 2 },
+      { type: "archer", count: 2 },
+    ],
+  },
+  // 3ステージ目
+  {
+    enemyWaves: [
+      { type: "tmp_rabbit", count: 2 },
+      { type: "archer", count: 3 },
+    ],
+  },
+  // 4ステージ目
+  {
+    enemyWaves: [{ type: "archer", count: 4 }],
+  },
+  // 5ステージ目
+  {
+    enemyWaves: [
+      { type: "tmp_rabbit", count: 2 },
+      { type: "archer", count: 4 },
+    ],
+  },
+  // 6ステージ目
+  {
+    enemyWaves: [
+      { type: "tmp_rabbit", count: 3 },
+      { type: "archer", count: 3 },
+    ],
+  },
+];

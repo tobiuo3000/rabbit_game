@@ -1,11 +1,12 @@
 // StageSelectScene
-// ステージ選択（ロード）画面やで。
+// ステージ選択（ロード）画面
 // 主な仕様:
 // - ステージボタンを押すとゲーム画面に遷移する
 // 制限事項:
 // - Phaser.Sceneを継承
 
 import Phaser from "phaser";
+import { STAGE_CONFIGS } from "../config";
 
 export class StageSelectScene extends Phaser.Scene {
   constructor() {
@@ -20,8 +21,11 @@ export class StageSelectScene extends Phaser.Scene {
         color: "#fff",
       })
       .setOrigin(0.5);
-    // ステージ1だけ用意（拡張しやすいように配列で）
-    const stages = ["ステージ1"];
+    // ステージ数分ボタンを自動生成
+    const stages = Array.from(
+      { length: STAGE_CONFIGS.length },
+      (_, i) => `ステージ${i + 1}`
+    );
     stages.forEach((stage, idx) => {
       const btn = this.add
         .text(width / 2, height / 2 + idx * 40, stage, {
@@ -32,7 +36,7 @@ export class StageSelectScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setInteractive();
       btn.on("pointerdown", () => {
-        this.scene.start("GameScene");
+        this.scene.start("GameScene", { stage: idx + 1 });
       });
     });
   }

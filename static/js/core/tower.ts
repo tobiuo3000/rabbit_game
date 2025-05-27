@@ -1,17 +1,13 @@
 /**
  * tower.ts
- * タワー（拠点）のクラスやで。
+ * タワー（拠点）のクラス
  *
  * 主な仕様:
  * - 体力・ダメージ処理・体力表示などを管理
  * 制限事項:
- * - Entity, 設定値のimportが必要やで。
+ * - Entity, 設定値のimportが必要
  */
 
-// =========================================
-// import Phaser from 'phaser';
-// Phaserの型や本体をnpmからimportするで。
-// =========================================
 import Phaser from "phaser";
 import { Entity } from "./entity.js";
 

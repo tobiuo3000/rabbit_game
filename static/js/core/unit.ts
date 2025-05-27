@@ -28,6 +28,7 @@ export class Unit extends Entity {
   imageKey: string;
   sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
   healthText: Phaser.GameObjects.Text;
+  priority: number;
 
   constructor(
     scene: Phaser.Scene,
@@ -41,7 +42,8 @@ export class Unit extends Entity {
     specialAbility: any = null,
     attackRange: number = 50,
     stopDistance: number = 20,
-    attackInterval: number = 1
+    attackInterval: number = 1,
+    priority: number = 1
   ) {
     super(scene, x, y);
     this.health = health;
@@ -56,6 +58,7 @@ export class Unit extends Entity {
     this.timeSinceLastAttack = 0;
     this.active = true;
     this.imageKey = imageKey;
+    this.priority = priority;
     if (
       imageKey === "rabbit" &&
       scene.textures.exists("frame1") &&
@@ -119,7 +122,10 @@ export class Unit extends Entity {
         attackTargets.push(enemyTower);
       }
     }
-    if (this.sprite instanceof Phaser.GameObjects.Sprite) {
+    if (
+      this.sprite instanceof Phaser.GameObjects.Sprite &&
+      (this.sprite as any).anims
+    ) {
       if (enemyInStopRange) {
         if (
           (this.scene as any).anims.exists("rabbit_attack_anim") &&
@@ -153,19 +159,21 @@ export class Unit extends Entity {
     } else {
       this.healthText.y = this.healthTextY;
     }
-    let collisionWithDifferentAlly = false;
+    let collisionWithAllyPriority = false;
     if (this.faction === "ally") {
       for (const other of (this.scene as any).entities) {
         if (
           other instanceof Unit &&
           other !== this &&
           other.faction === "ally" &&
-          other.imageKey !== this.imageKey
+          other.x > this.x &&
+          Math.abs(this.x - other.x) < 20 &&
+          (other.priority < this.priority ||
+            (other.priority === this.priority &&
+              other.imageKey !== this.imageKey)) // 同じ優先度で別種
         ) {
-          if (Math.abs(this.x - other.x) < 20) {
-            collisionWithDifferentAlly = true;
-            break;
-          }
+          collisionWithAllyPriority = true;
+          break;
         }
       }
     }
@@ -178,7 +186,7 @@ export class Unit extends Entity {
         this.timeSinceLastAttack = 0;
       }
     } else {
-      if (!collisionWithDifferentAlly) {
+      if (!collisionWithAllyPriority) {
         this.x += this.speed * deltaTime;
         if (this.sprite) {
           this.sprite.x = this.x;
