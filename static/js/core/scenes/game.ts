@@ -152,6 +152,7 @@ export class GameScene extends Phaser.Scene {
   /**
    * ユニット生成ボタン1つ分の作成処理
    * ボタン押下時に味方ユニットを生成してentitiesに追加する。
+   * クールタイム中はボタンを押せなくする。
    * @param typeKey ユニットタイプ名
    * @param x ボタンx座標
    * @param y ボタンy座標
@@ -159,6 +160,9 @@ export class GameScene extends Phaser.Scene {
   createUnitButton(typeKey: string, x: number, y: number): void {
     const buttonWidth = 70,
       buttonHeight = 30;
+    const COOLDOWN_SEC = 2;
+    let cooldown = 0;
+    let cooldownTimer: Phaser.Time.TimerEvent | null = null;
     let button = this.add
       .rectangle(x, y, buttonWidth, buttonHeight, 0x666666)
       .setInteractive();
@@ -168,7 +172,28 @@ export class GameScene extends Phaser.Scene {
         fill: "#ffffff",
       } as Phaser.Types.GameObjects.Text.TextStyle)
       .setOrigin(0.5, 0.5);
+
+    let cooldownText = this.add
+      .text(x, y + 18, "", {
+        fontSize: "12px",
+        color: "#ffaaaa",
+      } as Phaser.Types.GameObjects.Text.TextStyle)
+      .setOrigin(0.5, 0.5);
+
+    const updateCooldown = () => {
+      if (cooldown > 0) {
+        cooldownText.setText(`${cooldown.toFixed(1)}s`);
+        button.setFillStyle(0x444444);
+        button.disableInteractive();
+      } else {
+        cooldownText.setText("");
+        button.setFillStyle(0x666666);
+        button.setInteractive();
+      }
+    };
+
     button.on("pointerdown", () => {
+      if (cooldown > 0) return;
       const typeConfig = UNIT_TYPES[typeKey];
       const unit = new AllyUnit(
         this,
@@ -185,7 +210,26 @@ export class GameScene extends Phaser.Scene {
         typeConfig.priority
       );
       this.entities.push(unit);
+      // クールタイム開始
+      cooldown = COOLDOWN_SEC;
+      updateCooldown();
+      if (cooldownTimer) cooldownTimer.remove();
+      cooldownTimer = this.time.addEvent({
+        delay: 100,
+        loop: true,
+        callback: () => {
+          cooldown -= 0.1;
+          if (cooldown <= 0) {
+            cooldown = 0;
+            if (cooldownTimer) cooldownTimer.remove();
+            updateCooldown();
+          } else {
+            updateCooldown();
+          }
+        },
+      });
     });
+    updateCooldown();
   }
   /**
    * シーン内の全エンティティを破棄する処理
