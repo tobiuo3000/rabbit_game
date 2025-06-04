@@ -21,22 +21,22 @@
 ├── webpack.config.js         # Webpackの設定ファイル
 ├── static/
 │   ├── js/                   # TypeScript/JavaScriptのソースコード
-│   │   ├── core/             # ゲームのコアロジック
-│   │   │   ├── main.ts       # ゲームのエントリポイント
-│   │   │   ├── config.ts     # ゲーム設定
-│   │   │   ├── objects/      # エンティティ・タワー等のクラス
-│   │   │   │   ├── entity.ts
-│   │   │   │   ├── tower.ts
-│   │   │   ├── scenes/       # 各シーン（ゲーム、スタート、クリア、ステージ選択）
-│   │   │   │   ├── game.ts
-│   │   │   │   ├── start.ts
-│   │   │   │   ├── game_clear.ts
-│   │   │   │   ├── stage_select.ts
-│   │   │   └── units/        # ユニット関連（味方・敵・拠点）
-│   │   │       ├── ally.ts
-│   │   │       ├── enemy.ts
-│   │   │       ├── base.ts
-│   │   │       └── index.ts
+│   │   └── core/             # ゲームのコアロジック
+│   │       ├── main.ts       # ゲームのエントリポイント
+│   │       ├── config.ts     # ゲーム設定
+│   │       ├── objects/      # エンティティ・タワー等のクラス
+│   │       │   ├── entity.ts
+│   │       │   ├── tower.ts
+│   │       ├── scenes/       # 各シーン（ゲーム、スタート、クリア、ステージ選択）
+│   │       │   ├── game.ts
+│   │       │   ├── start.ts
+│   │       │   ├── game_clear.ts
+│   │       │   ├── stage_select.ts
+│   │       └── units/        # ユニット関連（味方・敵・拠点）
+│   │           ├── ally.ts
+│   │           ├── enemy.ts
+│   │           ├── base.ts
+│   │           └── index.ts
 │   └── assets/               # 画像等のアセット
 │       └── rabbit_unit/      # ウサギユニットの画像
 ├── templates/
