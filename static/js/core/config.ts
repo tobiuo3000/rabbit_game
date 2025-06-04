@@ -5,7 +5,7 @@
 // 主な仕様:
 // - ゲームバランスやアセットパス、ユニット種別などの定数を管理
 // 制限事項:
-// - 設定値を変更したら、他のファイルもimportし直す必要がある
+// - 設定値を変更した場合、他のファイルもimportし直す必要あり
 // =========================================
 
 export interface UnitTypeConfig {
@@ -17,6 +17,7 @@ export interface UnitTypeConfig {
   stopDistance: number;
   attackInterval: number;
   priority: number;
+  cooldown: number;
 }
 
 export const EASY_CONFIG = {
@@ -45,6 +46,7 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
     stopDistance: EASY_CONFIG.BASE_STOP_DISTANCE,
     attackInterval: EASY_CONFIG.BASE_ATTACK_INTERVAL,
     priority: 10,
+    cooldown: 3,
   },
   archer: {
     health: 20,
@@ -55,6 +57,7 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
     stopDistance: 85,
     attackInterval: 5,
     priority: 20,
+    cooldown: 4,
   },
   // cavalry: { ... },
   // mage:    { ... },

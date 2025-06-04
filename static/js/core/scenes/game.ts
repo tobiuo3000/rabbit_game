@@ -13,7 +13,6 @@ import { AllyUnit, EnemyUnit } from "../units";
 import { Tower } from "../objects/tower";
 
 export class GameScene extends Phaser.Scene {
-  // ゲーム内の全てのエンティティを管理する配列
   entities: any[];
   leftTower!: Tower;
   rightTower!: Tower;
@@ -42,7 +41,7 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * シーン初期化処理
-   * ステージ選択画面などから渡されたステージ番号を受け取って設定する。
+   * ステージ選択画面などから渡されたステージ番号を受け取って設定
    * @param data ステージ番号などの初期データ
    */
   init(data: { stage?: number } = {}): void {
@@ -63,7 +62,7 @@ export class GameScene extends Phaser.Scene {
   }
   /**
    * シーン生成時の初期化処理
-   * タワー・アニメーション・敵ウェーブ・UIボタンなどをセットアップする。
+   * タワー・アニメーション・敵ウェーブ・UIボタンなどをセットアップ
    */
   create(): void {
     const width = this.cameras.main.width;
@@ -71,7 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.leftTower = new Tower(this, 50, height / 2, 500, 0xffffff);
     this.rightTower = new Tower(this, width - 50, height / 2, 500, 0xff0000);
     this.entities.push(this.leftTower, this.rightTower);
-    // ウサギユニットのアニメーションを定義。後々に別の関数やクラスに分離することを検討
+    // ウサギユニットのアニメーションを定義。後々に、別のユニットが増えてきた場合は他の関数やクラスに分離することを検討
     if (!this.anims.exists("rabbit_walk_anim")) {
       this.anims.create({
         key: "rabbit_walk_anim",
@@ -137,7 +136,7 @@ export class GameScene extends Phaser.Scene {
   }
   /**
    * ユニット生成ボタン群を作成する処理
-   * 画面下部に各ユニットタイプごとのボタンを並べる。
+   * 画面下部に各ユニットタイプごとのボタンを並べる
    */
   createUnitButtons(): void {
     const unitTypes = Object.keys(UNIT_TYPES);
@@ -151,8 +150,8 @@ export class GameScene extends Phaser.Scene {
   }
   /**
    * ユニット生成ボタン1つ分の作成処理
-   * ボタン押下時に味方ユニットを生成してentitiesに追加する。
-   * クールタイム中はボタンを押せなくする。
+   * ボタン押下時に味方ユニットを生成してentitiesに追加する
+   * クールタイム中はボタンを押せなくする
    * @param typeKey ユニットタイプ名
    * @param x ボタンx座標
    * @param y ボタンy座標
@@ -160,7 +159,9 @@ export class GameScene extends Phaser.Scene {
   createUnitButton(typeKey: string, x: number, y: number): void {
     const buttonWidth = 70,
       buttonHeight = 30;
-    const COOLDOWN_SEC = 2;
+    // 各ユニットタイプごとにクールタイムを設定
+    const typeConfig = UNIT_TYPES[typeKey];
+    const COOLDOWN_SEC = typeConfig.cooldown;
     let cooldown = 0;
     let cooldownTimer: Phaser.Time.TimerEvent | null = null;
     let button = this.add
@@ -222,10 +223,8 @@ export class GameScene extends Phaser.Scene {
           if (cooldown <= 0) {
             cooldown = 0;
             if (cooldownTimer) cooldownTimer.remove();
-            updateCooldown();
-          } else {
-            updateCooldown();
           }
+          updateCooldown();
         },
       });
     });
