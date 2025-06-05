@@ -1,5 +1,9 @@
 import { Entity } from "../objects/entity";
-import { EASY_CONFIG } from "../config";
+import {
+  BASE_HEALTH_TEXT_Y,
+  BASE_HEALTH_TEXT_SIZE,
+  BASE_HEALTH_TEXT_COLOR,
+} from "../config";
 import type { Tower } from "../objects/tower";
 
 export class Unit extends Entity {
@@ -36,7 +40,7 @@ export class Unit extends Entity {
   ) {
     super(scene, x, y);
     this.health = health;
-    this.healthTextY = y - EASY_CONFIG.BASE_HEALTH_TEXT_Y;
+    this.healthTextY = y - BASE_HEALTH_TEXT_Y;
     this.attack = attack;
     this.speed = speed;
     this.specialAbility = specialAbility;
@@ -63,8 +67,8 @@ export class Unit extends Entity {
     }
     this.healthText = scene.add
       .text(x, this.healthTextY, `${this.health}`, {
-        fontSize: EASY_CONFIG.BASE_HEALTH_TEXT_SIZE,
-        fill: EASY_CONFIG.BASE_HEALTH_TEXT_COLOR,
+        fontSize: BASE_HEALTH_TEXT_SIZE,
+        fill: BASE_HEALTH_TEXT_COLOR,
       } as Phaser.Types.GameObjects.Text.TextStyle)
       .setOrigin(0.5, 0.5);
   }

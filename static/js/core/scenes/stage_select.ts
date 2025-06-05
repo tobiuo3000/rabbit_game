@@ -6,7 +6,7 @@
 // - Phaser.Sceneを継承
 
 import Phaser from "phaser";
-import { STAGE_CONFIGS } from "../config";
+import { ENEMY_CONFIGS } from "../config";
 
 export class StageSelectScene extends Phaser.Scene {
   constructor() {
@@ -23,7 +23,7 @@ export class StageSelectScene extends Phaser.Scene {
       .setOrigin(0.5);
     // ステージ数分ボタンを自動生成
     const stages = Array.from(
-      { length: STAGE_CONFIGS.length },
+      { length: ENEMY_CONFIGS.length },
       (_, i) => `ステージ${i + 1}`
     );
     stages.forEach((stage, idx) => {

@@ -8,7 +8,12 @@
  * - Phaser, Unit, Tower, 設定値のimportが必要
  */
 
-import { UNIT_TYPES, EASY_CONFIG, ASSETS_PATH, STAGE_CONFIGS } from "../config";
+import {
+  UNIT_TYPES,
+  ASSETS_PATH,
+  RABBIT_ANIMATION_FPS,
+  ENEMY_CONFIGS,
+} from "../config";
 import { AllyUnit, EnemyUnit } from "../units";
 import { Tower } from "../objects/tower";
 
@@ -81,18 +86,18 @@ export class GameScene extends Phaser.Scene {
       this.anims.create({
         key: "rabbit_walk_anim",
         frames: [{ key: "frame1" }, { key: "frame2" }],
-        frameRate: EASY_CONFIG.RABBIT_ANIMATION_FPS,
+        frameRate: RABBIT_ANIMATION_FPS,
         repeat: -1,
       });
       this.anims.create({
         key: "rabbit_attack_anim",
         frames: [{ key: "frame3" }, { key: "frame4" }, { key: "frame5" }],
-        frameRate: EASY_CONFIG.RABBIT_ANIMATION_FPS,
+        frameRate: RABBIT_ANIMATION_FPS,
         repeat: -1,
       });
     }
     // ステージごとの敵ウェーブをセット
-    const stageConfig = STAGE_CONFIGS[this.currentStage - 1];
+    const stageConfig = ENEMY_CONFIGS[this.currentStage - 1];
     this.enemyWaveQueue = stageConfig ? [...stageConfig.enemyWaves] : [];
     this.enemyWaveIndex = 0;
     this.spawnedCount = 0;
@@ -302,7 +307,7 @@ export class GameScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     // 最終ステージかどうか判定
-    const isLastStage = this.currentStage >= STAGE_CONFIGS.length;
+    const isLastStage = this.currentStage >= ENEMY_CONFIGS.length;
     if (isLastStage) {
       // 最終ステージなら即クリア画面へ遷移
       this.scene.start("GameClearScene");
