@@ -17,10 +17,16 @@ export class GameScene extends Phaser.Scene {
   leftTower!: Tower;
   rightTower!: Tower;
   currentStage: number;
-  enemyWaveQueue: { type: string; count: number }[];
+  enemyWaveQueue: { enemies: { type: string; count: number }[] }[];
   enemyWaveIndex: number;
   spawnedCount: number;
   private _stageClearUIShown: boolean = false;
+  private _currentWaveEnemies: {
+    type: string;
+    count: number;
+    spawned: number;
+  }[] = [];
+  private _waveEnemyTypeIndex: number = 0;
 
   /**
    * プロパティ（エンティティ配列、ステージ番号、敵ウェーブ管理用変数）を初期化
@@ -90,48 +96,86 @@ export class GameScene extends Phaser.Scene {
     this.enemyWaveQueue = stageConfig ? [...stageConfig.enemyWaves] : [];
     this.enemyWaveIndex = 0;
     this.spawnedCount = 0;
-    //一定間隔ごとに敵ユニットを出現させるタイマーイベントを設定
-    this.time.addEvent({
-      delay: 2000,
-      callback: this.spawnEnemyUnit,
-      callbackScope: this,
-      loop: true,
-    });
+    // 最初のウェーブを出現させる
+    this.spawnEnemyWave();
     this.createUnitButtons();
   }
   /**
-   * 敵ユニットを出現させる処理
-   * 現在のウェーブ情報に従って敵ユニットを生成し、ウェーブ進行も管理
+   * 現在のウェーブの敵を1体ずつランダムな間隔で出現させる処理
+   * ウェーブごとにタイマーをセットし、全て出し終わったらタイマーを止める
    */
-  spawnEnemyUnit(): void {
-    // 現在のウェーブがなければ何もしない
+  private _waveSpawnTimer: Phaser.Time.TimerEvent | null = null;
+  private _waveSpawnQueue: { type: string }[] = [];
+
+  spawnEnemyWave(): void {
     if (this.enemyWaveIndex >= this.enemyWaveQueue.length) return;
-    const wave = this.enemyWaveQueue[this.enemyWaveIndex];
-    if (!wave) return;
-    if (this.spawnedCount < wave.count) {
-      // 敵を一体生成
-      const typeConfig = UNIT_TYPES[wave.type];
-      if (!typeConfig) return;
-      const unit = new EnemyUnit(
-        this,
-        this.rightTower.x - 20,
-        this.rightTower.y,
-        typeConfig.health,
-        typeConfig.attack,
-        -typeConfig.speed,
-        typeConfig.imageKey,
-        null,
-        typeConfig.attackRange,
-        typeConfig.stopDistance,
-        typeConfig.attackInterval,
-        typeConfig.priority
-      );
-      this.entities.push(unit);
-      this.spawnedCount++;
+    // 今のウェーブの敵リストを展開してキュー化
+    const waveEnemies = this.enemyWaveQueue[this.enemyWaveIndex].enemies;
+    this._waveSpawnQueue = [];
+    waveEnemies.forEach((enemy) => {
+      for (let i = 0; i < enemy.count; i++) {
+        this._waveSpawnQueue.push({ type: enemy.type });
+      }
+    });
+    // シャッフルしてもOK（同時に出したい場合はランダムに並べる）
+    for (let i = this._waveSpawnQueue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this._waveSpawnQueue[i], this._waveSpawnQueue[j]] = [
+        this._waveSpawnQueue[j],
+        this._waveSpawnQueue[i],
+      ];
+    }
+    // 既存タイマーがあれば止める
+    if (this._waveSpawnTimer) this._waveSpawnTimer.remove();
+    // 1体ずつ出すタイマー開始
+    this._waveSpawnTimer = this.time.addEvent({
+      delay: Phaser.Math.Between(800, 1200),
+      loop: true,
+      callback: this._spawnEnemyFromQueue,
+      callbackScope: this,
+    });
+  }
+
+  /**
+   * ウェーブ出現キューから1体ずつ敵を出す
+   */
+  private _spawnEnemyFromQueue(): void {
+    if (this._waveSpawnQueue.length === 0) {
+      // 全部出し終わったらタイマー止める
+      if (this._waveSpawnTimer) this._waveSpawnTimer.remove();
+      this._waveSpawnTimer = null;
+      return;
+    }
+    const enemy = this._waveSpawnQueue.shift();
+    if (!enemy) return;
+    const typeConfig = UNIT_TYPES[enemy.type];
+    if (!typeConfig) return;
+    const unit = new EnemyUnit(
+      this,
+      this.rightTower.x - 20,
+      this.rightTower.y,
+      typeConfig.health,
+      typeConfig.attack,
+      -typeConfig.speed,
+      typeConfig.imageKey,
+      null,
+      typeConfig.attackRange,
+      typeConfig.stopDistance,
+      typeConfig.attackInterval,
+      typeConfig.priority
+    );
+    this.entities.push(unit);
+    // 次の出現までの間隔をランダムにするため、タイマーを作り直す
+    if (this._waveSpawnTimer) this._waveSpawnTimer.remove();
+    if (this._waveSpawnQueue.length > 0) {
+      this._waveSpawnTimer = this.time.addEvent({
+        delay: Phaser.Math.Between(800, 1200),
+        loop: false,
+        callback: this._spawnEnemyFromQueue,
+        callbackScope: this,
+      });
     } else {
-      // 次のウェーブへ
-      this.enemyWaveIndex++;
-      this.spawnedCount = 0;
+      this._waveSpawnTimer = null;
     }
   }
   /**
@@ -393,6 +437,23 @@ export class GameScene extends Phaser.Scene {
       this._stageClearUIShown = true;
       this.showGameOverOptions();
       return;
+    }
+    // --- ウェーブ進行管理 ---
+    // 画面上に敵ユニットがいなく、かつ出現待ちもなければ次ウェーブ
+    const hasEnemy = this.entities.some(
+      (entity) => entity instanceof EnemyUnit
+    );
+    const isSpawning =
+      this._waveSpawnQueue.length > 0 || this._waveSpawnTimer !== null;
+    if (
+      !hasEnemy &&
+      !isSpawning &&
+      this.enemyWaveIndex < this.enemyWaveQueue.length
+    ) {
+      this.enemyWaveIndex++;
+      if (this.enemyWaveIndex < this.enemyWaveQueue.length) {
+        this.spawnEnemyWave();
+      }
     }
   }
 }

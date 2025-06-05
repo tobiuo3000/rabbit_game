@@ -70,49 +70,54 @@ export const UNIT_TYPES: { [key: string]: UnitTypeConfig } = {
 // =============================
 export interface StageConfig {
   enemyWaves: Array<{
-    type: string; // UNIT_TYPESのキー
-    count: number;
+    enemies: Array<{
+      type: string; // UNIT_TYPESのキー
+      count: number;
+    }>;
   }>;
 }
 
 export const STAGE_CONFIGS: StageConfig[] = [
   // 1ステージ目
   {
-    enemyWaves: [{ type: "tmp_rabbit", count: 3 }],
+    enemyWaves: [
+      { enemies: [{ type: "tmp_rabbit", count: 3 }] },
+      { enemies: [{ type: "archer", count: 1 }] },
+    ],
   },
   // 2ステージ目
   {
     enemyWaves: [
-      { type: "tmp_rabbit", count: 4 },
-      { type: "archer", count: 2 },
+      { enemies: [{ type: "tmp_rabbit", count: 4 }] },
+      { enemies: [{ type: "archer", count: 2 }] },
     ],
   },
   // 3ステージ目
   {
     enemyWaves: [
-      { type: "tmp_rabbit", count: 5 },
-      { type: "archer", count: 3 },
+      { enemies: [{ type: "tmp_rabbit", count: 5 }] },
+      { enemies: [{ type: "archer", count: 3 }] },
     ],
   },
   // 4ステージ目
   {
     enemyWaves: [
-      { type: "tmp_rabbit", count: 6 },
-      { type: "archer", count: 4 },
+      { enemies: [{ type: "tmp_rabbit", count: 6 }] },
+      { enemies: [{ type: "archer", count: 4 }] },
     ],
   },
   // 5ステージ目
   {
     enemyWaves: [
-      { type: "tmp_rabbit", count: 7 },
-      { type: "archer", count: 5 },
+      { enemies: [{ type: "tmp_rabbit", count: 7 }] },
+      { enemies: [{ type: "archer", count: 5 }] },
     ],
   },
   // 6ステージ目
   {
     enemyWaves: [
-      { type: "tmp_rabbit", count: 8 },
-      { type: "archer", count: 6 },
+      { enemies: [{ type: "tmp_rabbit", count: 8 }] },
+      { enemies: [{ type: "archer", count: 6 }] },
     ],
   },
 ];
