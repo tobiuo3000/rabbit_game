@@ -7,7 +7,7 @@
 - バックエンド: Python (Flask)
 - フロントエンド: TypeScript + Phaser
 - ビルド: Webpack
-- 開発環境: Docker（dev.Dockerfile）
+- 開発環境: Docker（Dockerfile）
 
 ## 開発環境の構築方法
 
@@ -22,7 +22,7 @@
 2. **Dockerを使う場合**
 
    ```bash
-   docker build -f dev.Dockerfile -t rabbit_game_dev .
+   docker build -f Dockerfile -t rabbit_game_dev .
    docker run --rm -it -d -p 5000:5000 -v $(pwd):/app rabbit_game_dev
    ```
 
